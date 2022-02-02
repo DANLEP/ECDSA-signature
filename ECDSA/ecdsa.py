@@ -1,34 +1,32 @@
 from hashlib import sha256
-from .signature import Signature
+from binascii import hexlify
+from random import SystemRandom
+
 from .math import Math
-from .utils.integer import RandomInteger
-from .utils.binary import numberFromByteString
-from .utils.compatibility import *
+from .signature import Signature
+
 
 class ECDSA:
 
     @classmethod
     def sign(cls, message, privateKey, hashfunc=sha256):
-        byteMessage = hashfunc(toBytes(message)).digest()
-        numberMessage = numberFromByteString(byteMessage)
+        byteMessage = hashfunc(message.encode("utf-8")).digest()
+        numberMessage = int((hexlify(byteMessage)).decode("utf-8"), 16)
         curve = privateKey.curve
 
         r, s, randSignPoint = 0, 0, None
         while r == 0 or s == 0:
-            randNum = RandomInteger.between(1, curve.N - 1)
+            randNum = SystemRandom().randrange(1, curve.N)
             randSignPoint = Math.multiply(curve.G, n=randNum, A=curve.A, P=curve.P, N=curve.N)
             r = randSignPoint.x % curve.N
             s = ((numberMessage + r * privateKey.secret) * (Math.inv(randNum, curve.N))) % curve.N
-        recoveryId = randSignPoint.y & 1
-        if randSignPoint.y > curve.N:
-            recoveryId += 2
 
-        return Signature(r=r, s=s, recoveryId=recoveryId)
+        return Signature(r=r, s=s)
 
     @classmethod
     def verify(cls, message, signature, publicKey, hashfunc=sha256):
-        byteMessage = hashfunc(toBytes(message)).digest()
-        numberMessage = numberFromByteString(byteMessage)
+        byteMessage = hashfunc(message.encode("utf-8")).digest()
+        numberMessage = int((hexlify(byteMessage)).decode("utf-8"), 16)
         curve = publicKey.curve
         r = signature.r
         s = signature.s

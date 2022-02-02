@@ -1,4 +1,4 @@
-from .point import Point
+from .curve import Point
 
 class Math:
 

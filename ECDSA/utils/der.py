@@ -1,5 +1,4 @@
 from datetime import datetime
-from .oid import oidToHex, oidFromHex
 from .binary import hexFromInt, intFromHex, byteStringFromHex, bitsFromHex
 
 
@@ -41,8 +40,8 @@ def encodeConstructed(*encodedValues):
 def encodePrimitive(tagType, value):
     if tagType == DerFieldType.integer:
         value = _encodeInteger(value)
-    if tagType == DerFieldType.object:
-        value = oidToHex(value)
+    # if tagType == DerFieldType.object:
+        # value = oidToHex(value)
     return "{tag}{size}{value}".format(tag=_typeToHexTag[tagType], size=_generateLengthBytes(value), value=value)
 
 
@@ -61,7 +60,7 @@ def parse(hexadecimal):
 
     valueParser = {
         DerFieldType.null: _parseNull,
-        DerFieldType.object: _parseOid,
+        # DerFieldType.object: _parseOid,
         DerFieldType.utcTime: _parseTime,
         DerFieldType.integer: _parseInteger,
         DerFieldType.printableString: _parseString,
@@ -73,8 +72,8 @@ def _parseAny(hexadecimal):
     return hexadecimal
 
 
-def _parseOid(hexadecimal):
-    return tuple(oidFromHex(hexadecimal))
+# def _parseOid(hexadecimal):
+#     return tuple(oidFromHex(hexadecimal))
 
 
 def _parseTime(hexadecimal):
